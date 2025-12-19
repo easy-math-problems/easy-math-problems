@@ -18,6 +18,7 @@
                 "Name": "general",
                 "Message": "Why should we choose you to become a beta tester for JustStudy?"
             },
+            {
                 "Type": "input",
                 "Name": "github",
                 "Message": "What is your GitHub username?"
