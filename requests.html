@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Request Form</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .form-container {
+            background: #ffffff;
+            padding: 2vw;
+            border-radius: 1vw;
+            box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
+            width: 55vw;
+            box-sizing: border-box;
+        }
+
+        .form-group {
+            margin-bottom: 2vw;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5vw;
+            font-size: 3vw;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 1vw;
+            font-size: 2vw;
+            border: 0.2vw solid #ccc;
+            border-radius: 0.5vw;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 1vw 2vw;
+            font-size: 2vw;
+            border: none;
+            background: #007BFF;
+            color: #fff;
+            border-radius: 0.5vw;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <form id="requestForm">
+            <div class="form-group">
+                <label for="requestType">Request Type:</label>
+                <select id="requestType" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="fix">Fix</option>
+                    <option value="gamereq">Game Request</option>
+                    <option value="takedown">Takedown</option>
+                </select>
+            </div>
+            <div class="form-group hidden" id="fixGroup">
+                <label for="siteField">Site:</label>
+                <input type="text" id="siteField">
+            </div>
+            <div class="form-group hidden" id="gamereqGroup">
+                <label for="gameField">Game:</label>
+                <input type="text" id="gameField">
+            </div>
+            <div class="form-group hidden" id="takedownGroup">
+                <label for="takedownField">Takedown:</label>
+                <input type="text" id="takedownField">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        const requestTypeEl = document.getElementById('requestType');
+        const fixGroup = document.getElementById('fixGroup');
+        const gamereqGroup = document.getElementById('gamereqGroup');
+        const takedownGroup = document.getElementById('takedownGroup');
+
+        // Show/hide groups on type change
+        requestTypeEl.addEventListener('change', function () {
+            [fixGroup, gamereqGroup, takedownGroup].forEach(g => g.classList.add('hidden'));
+            if (this.value === 'fix') fixGroup.classList.remove('hidden');
+            else if (this.value === 'gamereq') gamereqGroup.classList.remove('hidden');
+            else if (this.value === 'takedown') takedownGroup.classList.remove('hidden');
+        });
+
+        document.getElementById('requestForm').addEventListener('submit', async function (e) {
+            e.preventDefault(); // stop native submit
+
+            // 1️⃣ Validate selection
+            const type = requestTypeEl.value.trim();
+            if (!type) {
+                alert('🚨 Please select a Request Type!');
+                requestTypeEl.focus();
+                return;
+            }
+
+            // 2️⃣ Determine which field to check
+            let fieldEl, fieldLabel;
+            if (type === 'fix') {
+                fieldEl = document.getElementById('siteField');
+                fieldLabel = 'Site';
+            } else if (type === 'gamereq') {
+                fieldEl = document.getElementById('gameField');
+                fieldLabel = 'Game';
+            } else { // takedown
+                fieldEl = document.getElementById('takedownField');
+                fieldLabel = 'Takedown';
+            }
+
+            // 3️⃣ Trim & validate that one visible input
+            const value = fieldEl.value.trim();
+            if (!value) {
+                alert(`🚨 Please provide the ${fieldLabel}!`);
+                fieldEl.focus();
+                return;
+            }
+
+            // 4️⃣ Build payload
+            const data = { data: { type } };
+            data.data[fieldLabel.toLowerCase()] = value;
+
+            // 5️⃣ Dispatch
+            try {
+                const hostname = window.location.hostname;
+                const apiUrl = `https://api.${hostname}/api/juststudy`;
+                await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                alert('✅ Success! Someone will have a look shortly. Redirecting back home…');
+                window.history.back();
+            } catch (err) {
+                console.error('Submission failed:', err);
+                alert('⚠️ Oops, something went sideways. Please try again in a moment.');
+            }
+        });
+    </script>
+
+</body>
+
+</html>
